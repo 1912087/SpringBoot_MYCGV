@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.springboot.mycgv.mapper.MovieMapper">
+	<select id = "getMovieList" parameterType = "com.springboot.mycgv.dto.PageDto"
+			resultType = "com.springboot.mycgv.dto.MovieDto">
+		SELECT RNO, MID, MNAME, MCATEGORY, TO_CHAR(MDATE, 'YYYY-MM-DD') MDATE
+		FROM (SELECT ROWNUM RNO, MID, MNAME, MCATEGORY, MDATE
+			FROM (SELECT MID, MNAME, MCATEGORY, MDATE FROM CGV_MOVIE ORDER BY MDATE DESC))
+		WHERE RNO BETWEEN #{startCount} AND #{endCount}
+	</select>
+	
+	<select id = "getMovieContent" parameterType = "java.lang.String" resultType = "com.springboot.mycgv.dto.MovieDto">
+		SELECT CM.MID, FID, MCATEGORY, MNAME, MDESC, TO_CHAR(MDATE, 'YYYY-MM-DD') MDATE,
+				MFILE1, MSFILE1, MFILE2, MSFILE2
+		FROM CGV_MOVIE CM, CGV_MOVIE_FILE CMF
+		WHERE CM.MID = CMF.MID AND CM.MID = #{mid}
+	</select>
+	
+	<insert id = "getMovieWrite" parameterType = "com.springboot.mycgv.dto.MovieDto">
+		INSERT INTO CGV_MOVIE VALUES('m_'||SEQU_CGV_MOVIE.NEXTVAL, #{mcategory}, #{mname}, #{mdesc}, SYSDATE)
+	</insert>
+	
+	<insert id = "getMovieFileWrite" parameterType = "com.springboot.mycgv.dto.MovieDto">
+		INSERT INTO CGV_MOVIE_FILE(FID, MFILE1, MFILE2, MSFILE1, MSFILE2, MID)
+		VALUES('f_'||SEQU_CGV_MOVIE_FILE.NEXTVAL, 
+		<foreach collection = "fileList" item = "fileList" open = "" separator="," close=",">
+			#{fileList}
+		</foreach>
+		<foreach collection = "sfileList" item = "sfileList" open = "" separator = "," close = ",">
+			#{sfileList}
+		</foreach>
+		'm_'||SEQU_CGV_MOVIE.CURRVAL)
+	</insert>
+	
+	<update id = "getMovieUpdate" parameterType = "com.springboot.mycgv.dto.MovieDto">
+		UPDATE CGV_MOVIE SET MNAME = #{mname}, MCATEGORY = #{mcategory}, MDESC = #{mdesc}
+		WHERE MID = #{mid}
+	</update>
+	
+	<update id = "getMovieFileUpdate" parameterType = "com.springboot.mycgv.dto.MovieDto">
+		UPDATE CGV_MOVIE_FILE SET
+			<if test = "!fileList[0].equals('')">
+				mfile1 = #{fileList[0]},
+			</if>
+			<if test = "!sfileList[0].equals('')">
+				msfile1 = #{sfileList[0]},
+			</if>
+			<if test = "!fileList[1].equals('')">
+				mfile2 = #{fileList[1]},
+			</if>
+			<if test = "!sfileList[1].equals('')">
+				msfile2 = #{sfileList[1]},
+			</if>
+			FID = #{fid}
+		WHERE FID = #{fid}
+	</update>
+	
+	<delete id = "getMovieDelete" parameterType = "java.lang.String">
+		DELETE FROM CGV_MOVIE WHERE MID = #{mid}
+	</delete>
+	
+	<!-- INDEX PAGE -->
+	<select id = "getIndexList" resultType = "com.springboot.mycgv.dto.MovieDto">
+		SELECT RNO, MID, MNAME, MCATEGORY, MSFILE1
+		FROM (SELECT ROWNUM RNO, MID, MNAME, MCATEGORY, MSFILE1
+			FROM (SELECT CM.MID, MNAME, MCATEGORY, MSFILE1 FROM CGV_MOVIE CM, CGV_MOVIE_FILE CMF 
+				WHERE CM.MID = CMF.MID ORDER BY MDATE DESC))
+		WHERE RNO BETWEEN 1 AND 5
+	</select>
+</mapper>

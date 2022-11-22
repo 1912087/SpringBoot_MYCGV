@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.springboot.mycgv.mapper.BoardMapper">
+	<select id = "getList" parameterType = "com.springboot.mycgv.dto.PageDto" 
+			resultType = "com.springboot.mycgv.dto.BoardDto">
+		SELECT RNO, BID, BTITLE, BHITS, TO_CHAR(BDATE, 'YYYY-MM-DD') BDATE, ID
+		FROM (SELECT ROWNUM RNO, BID, BTITLE, BHITS, BDATE, ID
+			FROM (SELECT BID, BTITLE, BHITS, BDATE, ID FROM CGV_BOARD ORDER BY BDATE DESC))
+		WHERE RNO BETWEEN #{startCount} AND #{endCount}	
+	</select>
+	
+	<select id = "getContent" parameterType = "java.lang.String"
+			resultType = "com.springboot.mycgv.dto.BoardDto">
+		SELECT BID, BTITLE, BCONTENT, BFILE, BSFILE, BHITS, TO_CHAR(BDATE, 'YYYY-MM-DD') BDATE, ID
+		FROM CGV_BOARD
+		WHERE BID = #{bid}
+	</select>
+	
+	<insert id = "getWrite" parameterType = "com.springboot.mycgv.dto.BoardDto">
+		INSERT INTO CGV_BOARD VALUES('b_' || SEQU_CGV_BOARD.NEXTVAL, #{btitle}, #{bcontent}, #{file}, #{sfile}, 0, SYSDATE, #{id})
+	</insert>
+	
+	<update id = "getUpdate" parameterType = "com.springboot.mycgv.dto.BoardDto">
+		UPDATE CGV_BOARD SET BTITLE = #{btitle}, BCONTENT = #{bcontent}, BFILE = #{file}, BSFILE = #{sfile}
+		WHERE BID = #{bid}
+	</update>
+	
+	<delete id = "getDelete" parameterType = "com.springboot.mycgv.dto.BoardDto">
+		DELETE FROM CGV_BOARD WHERE BID = #{bid}
+	</delete>
+	
+	<update id = "getHits" parameterType = "java.lang.String">
+		UPDATE CGV_BOARD SET BHITS = BHITS + 1 WHERE BID = #{bid}
+	</update>
+</mapper>
